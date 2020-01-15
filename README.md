@@ -1,6 +1,6 @@
 # Text Rank 알고리즘을 활용한 텍스트 데이터 요약
 
-#### Text Rank
+## TextRank
 
 - 텍스트에 관한 graph-based ranking model로, Google의 pageRank 알고리즘을 활용한 알고리즘
 
@@ -57,6 +57,16 @@
     d : damping factor(0.85)
     Wij : 단어(또는 문장) 사이의 가중치
     ```
+    
+    - PageRank에서 해당 페이지의 참조하는 페이지에서의 기여도를 계산한 점에서 착안
+    
+      => 다른 단어(또는 문장)에서 참조하는 현재 단어(또는 문장)의 기여도를 계산한다.
+    
+      - 현재 단어(또는 문장)를 참조하는 단어(또는 문장)의 중요도(TextRank)에 현재 단어(또는 문장)의 기여도(비율)를 곱하여 현재 단어(또는 문장)의 TextRank를 구한다.
+    
+        
+    
+      ![img](https://t1.daumcdn.net/cfile/tistory/24441450593D75C226)
 
 - TextRank algorithm flow
 
@@ -225,3 +235,40 @@ def get_ranks(self, graph, d=0.85): # d = damping factor
 
 
 참고 : https://excelsior-cjh.tistory.com/93
+
+
+
+## Data Crawling & MongoDB
+
+#### MongoDB 연동
+
+- pymongo 라이브러리 설치 및 임포트
+
+  ```
+  pip install pymongo
+  
+  import pymongo
+  from pymongo import MongoClient
+  ```
+
+- MongoClient 연결 : 실행중인 mongod 인스턴스 작성
+
+  ```python
+  client = MongoClient()
+  db = client.allreview		// 데이터베이스 access
+  collection = db.review		// collection access
+  posts = db.posts
+  ```
+
+- 해당 collection의 모든 데이터 검색 - find() 함수 호출
+
+  ```python
+  document = []
+  for post in posts.find():
+      document.append(post['context'])
+  ```
+
+  - find_one() : 단일 문서 반환 => 일치하는 document가 하나만 존재하거나 첫번째 일치만 중요할 때
+  - find() : 모든 문서 반환 => 일치하는 모든 document를 반복할 수 있는 Cursor 인스턴스 리턴
+
+- 참고 : https://api.mongodb.com/python/current/tutorial.html
