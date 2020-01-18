@@ -4,27 +4,32 @@ import pymongo
 from pymongo import MongoClient
 
 # crawling data
-url = "https://search.shopping.naver.com/detail/detail.nhn?nv_mid=16658567154&cat_id=50000151&frm=NVSCPRO&query=%EB%85%B8%ED%8A%B8%EB%B6%81&NaPm=ct%3Dk5fcuf6w%7Cci%3De4bc6249377fde0c8384f12441c53b0bb3f36855%7Ctr%3Dslsl%7Csn%3D95694%7Chk%3De4768bf90ea6c0e5d2fc2c763f912d92d4d31ed5"
+url = 'https://search.shopping.naver.com/detail/detail.nhn?nvMid=21462435785&adId=nad-a001-02-000000082496455&channel=nshop.npla&query=%EB%85%B8%ED%8A%B8%EB%B6%81&NaPm=ct%3Dk5j2q6rk%7Cci%3D0zC0000Svg9sOWR2bfnA%7Ctr%3Dpla%7Chk%3D9a9b92e5de6abcf3a47acf5ba973b17346f95380'
 
 html = urlopen(url).read()
 
 soup = BeautifulSoup(html, 'html.parser')
 list = soup.find('ul', class_='lst_review')
-
-reviews = list.find_all('div', class_='atc')
+model = soup.find('div', class_='h_area').find('h2')
+reviews = list.find_all('div', class_='atc_area')
 
 data = []
 for review in reviews:
-    r = {
-        'context': review.text
+    info = review.find_all('span', class_='info_cell')
+    reviewData = {
+        'title': review.find('p', class_='subjcet').text,
+        'writer': info[1].text,
+        'model': model.text.strip(),
+        'category': 'beauty',
+        'rating': review.find('span', class_='curr_avg').text,
+        'context': review.find('div', class_='atc').text
     }
-    data.append(r)
+    data.append(reviewData)
 
 # MongoDB connection & save data
-client = MongoClient()
-db = client.allreview
-collection = db.review
+username = 'hs'
+password = '12345'
+client = MongoClient('mongodb://%s:%s@localhost:27017/allreview'%(username, password))
+db = client['allreview']
 
-posts = db.posts
-result = posts.insert_many(data)
-
+result = db.review.insert_many(data)

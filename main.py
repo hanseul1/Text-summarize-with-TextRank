@@ -6,6 +6,7 @@ from sklearn.preprocessing import normalize
 import numpy as np
 import pymongo
 from pymongo import MongoClient
+import pymysql
 
 class SentenceTokenizer(object):
     def __init__(self):
@@ -111,16 +112,27 @@ class Ranking(object):
         return keywords
 
 # MongoDB connection & querying data
-client = MongoClient()
-db = client.allreview
-collection = db.review
-posts = db.posts
+username = 'hs'
+password = '12345'
+client = MongoClient('mongodb://%s:%s@localhost:27017/allreview'%(username, password))
+db = client['allreview']
 
 document = []
-for post in posts.find():
-    document.append(post['context'])
+for review in db.review.find({'category':'beauty'}):
+    document.append(review['context'])
 
 # Top20 keywords extraction
 rank = Ranking(document)
 
 print(rank.keywords())
+
+# MySQL 연동
+conn = pymysql.connect(host='localhost', user='root', password='12345', db='allreview', charset='utf8')
+curs = conn.cursor()
+
+sql = 'insert into keyword(word, category) values(%s, %s)'
+
+for keyword in rank.keywords():
+    curs.execute(sql,(keyword,8))
+    
+conn.commit()
